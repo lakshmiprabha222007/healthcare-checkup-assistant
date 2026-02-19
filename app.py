@@ -138,8 +138,7 @@ elif st.session_state.page == "questionnaire":
         "bmi": bmi,
         "smoking": yes_no(smoking),
         "exercise_level": exercise,
-        "sleep_hours": sleep,
-        "risk_score": risk_score
+        "sleep_hours": sleep
     }
 
     col1, col2 = st.columns(2)

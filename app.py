@@ -1,30 +1,14 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-from PIL import Image
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import LabelEncoder
 
-st.set_page_config(page_title="Health Risk Predictor", layout="centered")
-
-# ---------- Title ----------
-st.markdown(
-    "<h1 style='text-align: center; color:#4CAF50;'>🌿 Health Risk Predictor</h1>",
-    unsafe_allow_html=True
-)
-
-st.write("### Enter your health details below")
-
-# ---------- Sidebar image ----------
-st.sidebar.image(
-    "https://images.unsplash.com/photo-1505751172876-fa1923c5c528",
-    caption="Stay Healthy 💚"
-)
+st.set_page_config(page_title="Health AI", page_icon="🌿", layout="wide")
 
 # ---------- Load dataset ----------
 df = pd.read_excel("health_prediction_enhanced_500.xlsx")
 
-# Encode categorical columns
 le_gender = LabelEncoder()
 df['gender'] = le_gender.fit_transform(df['gender'])
 
@@ -40,40 +24,97 @@ y = df["disease"]
 model = RandomForestClassifier()
 model.fit(X, y)
 
-# ---------- User Inputs ----------
-col1, col2 = st.columns(2)
+# ---------- Navigation ----------
+st.sidebar.title("🌿 Health AI")
+page = st.sidebar.radio("Navigate", ["🏠 Home", "📝 Health Questionnaire", "🔍 Prediction"])
 
-with col1:
+# ---------- HOME ----------
+if page == "🏠 Home":
+    st.title("🌿 AI Health Risk Predictor")
+    st.write(
+        """
+        Welcome to your personal health assistant 💚  
+        Answer a few simple questions and get your predicted health risk.
+        """
+    )
+
+    st.image(
+        "https://images.unsplash.com/photo-1498837167922-ddd27525d352",
+        use_column_width=True
+    )
+
+# ---------- QUESTIONNAIRE ----------
+elif page == "📝 Health Questionnaire":
+    st.title("📝 Health Questionnaire")
+
+    st.subheader("Basic Information")
     age = st.slider("Age", 10, 80, 25)
+    gender = st.selectbox("Gender", ["Male", "Female"])
+
+    st.subheader("Health Metrics")
     bmi = st.slider("BMI", 15.0, 40.0, 22.0)
     bp = st.slider("Blood Pressure", 80, 180, 120)
     cholesterol = st.slider("Cholesterol", 100, 350, 200)
-
-with col2:
     sleep = st.slider("Sleep Hours", 3.0, 10.0, 7.0)
-    smoking = st.selectbox("Smoking", [0,1])
-    gender = st.selectbox("Gender", ["Male","Female"])
-    exercise = st.selectbox("Exercise Level", ["Low","Moderate","High"])
 
-fever = st.selectbox("Fever", [0,1])
-cough = st.selectbox("Cough", [0,1])
-headache = st.selectbox("Headache", [0,1])
-fatigue = st.selectbox("Fatigue", [0,1])
-risk_score = st.slider("Risk Score", 0.0, 1.0, 0.5)
+    st.subheader("Lifestyle")
+    smoking = st.radio("Do you smoke?", ["No", "Yes"])
+    exercise = st.selectbox("Exercise Level", ["Low", "Moderate", "High"])
 
-# Encode inputs
-gender = le_gender.transform([gender])[0]
-exercise = le_exercise.transform([exercise])[0]
+    st.subheader("Symptoms")
+    fever = st.radio("Fever?", ["No", "Yes"])
+    cough = st.radio("Cough?", ["No", "Yes"])
+    headache = st.radio("Headache?", ["No", "Yes"])
+    fatigue = st.radio("Fatigue?", ["No", "Yes"])
 
-input_data = np.array([[fever,cough,headache,fatigue,age,bp,cholesterol,
-                        gender,bmi,smoking,exercise,sleep,risk_score]])
+    risk_score = st.slider("Overall Health Risk Feeling", 0.0, 1.0, 0.5)
 
-# ---------- Prediction ----------
-if st.button("🔍 Predict Health Risk"):
-    prediction = model.predict(input_data)
-    disease = le_disease.inverse_transform(prediction)[0]
+    # Convert Yes/No to 0/1
+    yes_no = lambda x: 1 if x == "Yes" else 0
 
-    st.success(f"### 🩺 Predicted Result: **{disease}**")
+    st.session_state["input_data"] = {
+        "fever": yes_no(fever),
+        "cough": yes_no(cough),
+        "headache": yes_no(headache),
+        "fatigue": yes_no(fatigue),
+        "age": age,
+        "bp": bp,
+        "cholesterol": cholesterol,
+        "gender": gender,
+        "bmi": bmi,
+        "smoking": yes_no(smoking),
+        "exercise_level": exercise,
+        "sleep_hours": sleep,
+        "risk_score": risk_score
+    }
+
+    st.success("✅ Answers saved! Go to Prediction page")
+
+# ---------- PREDICTION ----------
+elif page == "🔍 Prediction":
+    st.title("🔍 Prediction Result")
+
+    if "input_data" not in st.session_state:
+        st.warning("Please fill the questionnaire first")
+    else:
+        data = st.session_state["input_data"]
+
+        gender = le_gender.transform([data["gender"]])[0]
+        exercise = le_exercise.transform([data["exercise_level"]])[0]
+
+        input_array = np.array([[
+            data["fever"], data["cough"], data["headache"], data["fatigue"],
+            data["age"], data["bp"], data["cholesterol"],
+            gender, data["bmi"], data["smoking"],
+            exercise, data["sleep_hours"], data["risk_score"]
+        ]])
+
+        prediction = model.predict(input_array)
+        disease = le_disease.inverse_transform(prediction)[0]
+
+        st.success(f"🩺 Predicted Health Status: **{disease}**")
+
+        st.info("💡 This is an AI prediction, not a medical diagnosis.")
 
 st.markdown("---")
 st.caption("Made with ❤️ using Streamlit")

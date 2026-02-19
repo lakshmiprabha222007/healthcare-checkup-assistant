@@ -6,6 +6,51 @@ from sklearn.preprocessing import LabelEncoder
 
 st.set_page_config(page_title="Health AI", page_icon="🌿", layout="wide")
 
+# ---------- Custom CSS ----------
+st.markdown("""
+<style>
+.main {
+    background-color: #f5f7fb;
+}
+
+.title {
+    font-size: 40px;
+    font-weight: 700;
+    color: #2c7be5;
+    text-align: center;
+}
+
+.subtitle {
+    font-size: 18px;
+    text-align: center;
+    color: #555;
+    margin-bottom: 30px;
+}
+
+.card {
+    background-color: white;
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0px 4px 12px rgba(0,0,0,0.08);
+    margin-bottom: 20px;
+}
+
+.stButton>button {
+    background-color: #2c7be5;
+    color: white;
+    border-radius: 10px;
+    height: 3em;
+    width: 220px;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.stButton>button:hover {
+    background-color: #1a5edb;
+}
+</style>
+""", unsafe_allow_html=True)
+
 # ---------- Load dataset ----------
 df = pd.read_excel("health_prediction_enhanced_500.xlsx")
 
@@ -24,28 +69,36 @@ y = df["disease"]
 model = RandomForestClassifier()
 model.fit(X, y)
 
-# ---------- Navigation ----------
-st.sidebar.title("🌿 Health AI")
-page = st.sidebar.radio("Navigate", ["🏠 Home", "📝 Health Questionnaire", "🔍 Prediction"])
+# ---------- Session Page ----------
+if "page" not in st.session_state:
+    st.session_state.page = "home"
 
 # ---------- HOME ----------
-if page == "🏠 Home":
-    st.title("🌿 AI Health Risk Predictor")
-    st.write(
-        """
-        Welcome to your personal health assistant 💚  
-        Answer a few simple questions and get your predicted health risk.
-        """
-    )
+if st.session_state.page == "home":
 
-    st.image(
-        "https://images.unsplash.com/photo-1498837167922-ddd27525d352",
-        use_column_width=True
-    )
+    st.markdown('<div class="title">🌿 AI Health Risk Predictor</div>', unsafe_allow_html=True)
+    st.markdown('<div class="subtitle">Your personal AI health assistant</div>', unsafe_allow_html=True)
+
+    st.markdown("""
+    <div class="card">
+    <h3>💚 Welcome!</h3>
+    <p>
+    This smart AI tool analyzes your health data and predicts possible health risks.
+    Click below to begin your assessment.
+    </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    if st.button("➡️ Start Assessment"):
+        st.session_state.page = "questionnaire"
+        st.rerun()
 
 # ---------- QUESTIONNAIRE ----------
-elif page == "📝 Health Questionnaire":
-    st.title("📝 Health Questionnaire")
+elif st.session_state.page == "questionnaire":
+
+    st.markdown('<div class="title">📝 Health Questionnaire</div>', unsafe_allow_html=True)
+
+    st.markdown('<div class="card">', unsafe_allow_html=True)
 
     st.subheader("Basic Information")
     age = st.slider("Age", 10, 80, 25)
@@ -69,7 +122,8 @@ elif page == "📝 Health Questionnaire":
 
     risk_score = st.slider("Overall Health Risk Feeling", 0.0, 1.0, 0.5)
 
-    # Convert Yes/No to 0/1
+    st.markdown('</div>', unsafe_allow_html=True)
+
     yes_no = lambda x: 1 if x == "Yes" else 0
 
     st.session_state["input_data"] = {
@@ -88,14 +142,26 @@ elif page == "📝 Health Questionnaire":
         "risk_score": risk_score
     }
 
-    st.success("✅ Answers saved! Go to Prediction page")
+    col1, col2 = st.columns(2)
+
+    with col1:
+        if st.button("⬅️ Back Home"):
+            st.session_state.page = "home"
+            st.rerun()
+
+    with col2:
+        if st.button("➡️ Predict"):
+            st.session_state.page = "prediction"
+            st.rerun()
 
 # ---------- PREDICTION ----------
-elif page == "🔍 Prediction":
-    st.title("🔍 Prediction Result")
+elif st.session_state.page == "prediction":
+
+    st.markdown('<div class="title">🔍 Prediction Result</div>', unsafe_allow_html=True)
 
     if "input_data" not in st.session_state:
         st.warning("Please fill the questionnaire first")
+
     else:
         data = st.session_state["input_data"]
 
@@ -112,9 +178,16 @@ elif page == "🔍 Prediction":
         prediction = model.predict(input_array)
         disease = le_disease.inverse_transform(prediction)[0]
 
-        st.success(f"🩺 Predicted Health Status: **{disease}**")
+        st.markdown(f"""
+        <div class="card">
+        <h2>🩺 Predicted Health Status: {disease}</h2>
+        <p>This is an AI prediction and not a medical diagnosis.</p>
+        </div>
+        """, unsafe_allow_html=True)
 
-        st.info("💡 This is an AI prediction, not a medical diagnosis.")
+        if st.button("🔄 Start Again"):
+            st.session_state.page = "home"
+            st.rerun()
 
 st.markdown("---")
 st.caption("Made with ❤️ using Streamlit")

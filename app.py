@@ -6,30 +6,72 @@ from sklearn.preprocessing import LabelEncoder
 
 st.set_page_config(page_title="Health AI", layout="wide")
 
-# ---------- Custom CSS ----------
+# ---------- PREMIUM CSS ----------
 st.markdown("""
 <style>
-.main-title {
-    font-size:48px;
+
+body {
+    background: linear-gradient(135deg, #f5fff7, #e8f5e9);
+}
+
+.navbar {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:20px 40px;
+    background:white;
+    border-radius:12px;
+    margin-bottom:20px;
+    box-shadow:0 4px 20px rgba(0,0,0,0.05);
+}
+
+.logo {
+    font-size:24px;
     font-weight:700;
     color:#2E7D32;
 }
-.sub-text {
-    font-size:20px;
+
+.hero-title {
+    font-size:52px;
+    font-weight:700;
+    color:#222;
+}
+
+.hero-title span {
+    color:#2E7D32;
+}
+
+.hero-text {
+    font-size:18px;
     color:#555;
 }
-.hero-btn {
-    background-color:#4CAF50;
+
+.btn {
+    background:linear-gradient(45deg,#2E7D32,#66BB6A);
     color:white;
-    padding:12px 28px;
-    border-radius:8px;
-    text-decoration:none;
+    padding:12px 26px;
+    border-radius:10px;
+    border:none;
     font-weight:600;
 }
-.section {
-    padding:40px 0;
+
+.card {
+    background:white;
+    padding:25px;
+    border-radius:16px;
+    box-shadow:0 10px 25px rgba(0,0,0,0.05);
+    text-align:center;
 }
+
 </style>
+""", unsafe_allow_html=True)
+
+# ---------- NAVBAR ----------
+st.markdown("""
+<div class="navbar">
+    <div class="logo">🌿 HealthAI</div>
+    <div>Home &nbsp;&nbsp; About &nbsp;&nbsp; Features &nbsp;&nbsp; Contact</div>
+</div>
 """, unsafe_allow_html=True)
 
 # ---------- Load dataset ----------
@@ -53,36 +95,32 @@ model.fit(X, y)
 # ---------- NAV ----------
 menu = st.sidebar.radio("Navigation", ["Home", "Questionnaire", "Prediction"])
 
-# ---------- HERO HOME ----------
+# ---------- HOME PAGE ----------
 if menu == "Home":
-    col1, col2 = st.columns([1.2,1])
+
+    col1, col2 = st.columns([1.3,1])
 
     with col1:
-        st.markdown('<p class="main-title">AI Health Assistant 🌿</p>', unsafe_allow_html=True)
-        st.markdown('<p class="sub-text">Predict your health risk using AI-powered analysis. Answer simple questions and get instant insights.</p>', unsafe_allow_html=True)
+        st.markdown('<p class="hero-title">AI Powered <span>Health Prediction</span></p>', unsafe_allow_html=True)
+        st.markdown('<p class="hero-text">Answer a few questions and get instant AI insights about your health status.</p>', unsafe_allow_html=True)
 
         st.markdown("###")
-
-        c1, c2 = st.columns(2)
-        with c1:
-            st.button("🚀 Get Started")
-        with c2:
-            st.button("📖 Learn More")
+        st.button("🚀 Get Started")
+        st.button("📖 Learn More")
 
     with col2:
         st.image("https://images.unsplash.com/photo-1505751172876-fa1923c5c528")
 
-    st.markdown("---")
+    st.markdown("##")
 
-    st.subheader("✨ Why use this app?")
     c1, c2, c3 = st.columns(3)
-
-    c1.info("⚡ Instant AI Predictions")
-    c2.info("📊 Personalized Insights")
-    c3.info("💚 Simple & Friendly UI")
+    c1.markdown('<div class="card">⚡<h4>Instant Prediction</h4><p>Get results in seconds</p></div>', unsafe_allow_html=True)
+    c2.markdown('<div class="card">📊<h4>Personal Insights</h4><p>AI powered analysis</p></div>', unsafe_allow_html=True)
+    c3.markdown('<div class="card">💚<h4>User Friendly</h4><p>Simple interface</p></div>', unsafe_allow_html=True)
 
 # ---------- QUESTIONNAIRE ----------
 elif menu == "Questionnaire":
+
     st.title("Health Questionnaire 📝")
 
     age = st.slider("Age", 10, 80, 25)
@@ -120,10 +158,11 @@ elif menu == "Questionnaire":
         "risk_score": risk_score
     }
 
-    st.success("Answers saved! Go to Prediction")
+    st.success("✅ Answers saved! Go to Prediction")
 
 # ---------- PREDICTION ----------
 elif menu == "Prediction":
+
     st.title("Prediction 🔍")
 
     if "input_data" not in st.session_state:
